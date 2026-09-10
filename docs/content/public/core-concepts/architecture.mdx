@@ -1,0 +1,130 @@
+---
+title: Three-Tier Architecture
+description: Understanding Me 2's infrastructure design
+---
+
+## Overview
+
+Me 2 is built on a three-tier architecture that separates concerns into distinct layers: the standalone application (frontend), the backend infrastructure for data management and APIs, and the AI service for intelligent processing.
+
+## Architecture Layers
+
+### Layer 1: Standalone App (Frontend)
+
+**Technology**: Next.js Web Application
+
+The frontend is a web application that provides the user interface for Me 2.
+
+**Core Features**:
+- ChatBox - Real-time chat interface
+- ProfilePage - User profile display and visualization
+- MemoryModal - Memory management and viewing
+- Real-time Communication - WebSocket client for instant updates
+
+**Port**: 3000
+
+**Key Responsibilities**:
+- User interface and interactions
+- WebSocket connection management
+- State management (Context API)
+- Real-time UI updates
+
+### Layer 2: Backend Infrastructure (Node.js Backend API)
+
+**Technology**: Express + WebSocket + Prisma ORM + PostgreSQL
+
+The backend serves as the central hub connecting the frontend and AI service.
+
+**Core Responsibilities**:
+
+**RESTful API**:
+- `/api/chat` - Chat message endpoints
+- `/api/profile` - Profile view and generation
+- `/api/memories` - Memory CRUD operations
+- `/api/thread` - Thread management
+
+**WebSocket Server**:
+- Bidirectional real-time communication with frontend
+- Message streaming
+- Live updates and notifications
+
+**Database Operations**:
+- Prisma ORM for database management
+- PostgreSQL for persistent storage
+- User data, conversations, threads, memories, and profiles
+
+**Business Logic**:
+- Memory extraction and classification
+- Profile generation coordination
+- Chat message routing
+- Auto-update management
+
+**Port**: 3001
+
+### Layer 3: AI Service (Intelligent Engine)
+
+**Technology**: Python + FastAPI + LangChain
+
+The AI service handles all intelligent processing and analysis.
+
+**Core Capabilities**:
+
+**Conversation Analysis**:
+- Natural language understanding
+- Context awareness
+- Response generation
+
+**Memory Extraction**:
+- Extract key information from conversations
+- Classify information into categories
+- Build knowledge base
+
+**Profile Generation**:
+- Synthesize memories into profile insights
+- Generate profile components
+- Update user representation
+
+**Port**: 8000
+
+## Data Flow
+
+### Complete Conversation Flow
+
+```
+1. User sends message
+   Frontend (ChatBox) 
+   ↓ [WebSocket]
+   
+2. Backend receives and processes
+   Backend (ws.ts)
+   ↓ [HTTP Request]
+   
+3. AI Service analyzes and responds
+   AI Server (/generate endpoint)
+   ↓ [HTTP Response]
+   
+4. Backend stores and notifies
+   Backend stores message and memories
+   ↓ [WebSocket]
+   
+5. Frontend updates UI
+   Frontend displays response and updates state
+```
+
+### Key Integration Points
+
+**Frontend ↔ Backend**:
+- REST API for initial data fetch
+- WebSocket for real-time messaging
+- Message streaming during AI responses
+- Profile update notifications
+
+**Backend ↔ AI Service**:
+- HTTP POST requests for AI processing
+- Request includes conversation context
+- Response contains AI analysis, memories, and profiles
+
+**Backend ↔ Database**:
+- Prisma ORM for all database operations
+- Transaction management for data consistency
+- Query logging and performance monitoring

@@ -1,0 +1,353 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/generated/product"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_PRODUCT")
+}
+
+// Core table definitions
+
+enum MessageRole {
+  user
+  ai
+  system
+}
+
+enum MessageMode {
+  impersonation
+  interviewer
+}
+
+enum MemoryType {
+  user
+  ai
+}
+
+enum SectionType {
+  progressBar
+  tags
+  timeline
+  spectrum
+  insights
+  metrics
+}
+
+// 1. User - for identity authentication and profile data
+model User {
+  id              String           @id @default(uuid()) @db.Uuid
+  name            String?
+  email           String?          @unique
+  emailVerified   DateTime?
+  image           String?          // OAuth provider avatar
+  
+  // Credentials Provider - password authentication (optional, only if using Credentials)
+  hashedPassword  String?          // bcrypt hashed password (nullable for OAuth users)
+  
+  title           String?          // User's professional title
+  bio             String?          // User's bio description
+  
+  // Memory operation tracking for auto-triggering profile updates
+  memoryOperationCount Int          @default(0)
+  lastAutoUpdateAt     DateTime?
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @default(now()) @updatedAt
+  
+  // relations
+  accounts        Account[]
+  threads         Thread[]
+  memories        Memory[]
+  profileSections ProfileSection[]
+  statistics UserStatistic[]
+  activityAnswers ActivityAnswer[]
+  evaluations     EvaluationRun[]
+
+  @@map("users")
+}
+
+// 2. Account - OAuth provider account linkage (NextAuth.js)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @db.Uuid
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// 3. Chat Thread - used to distinguish different conversation flows
+model Thread {
+  id        String    @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String?   @db.Uuid
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  activityId String?   @db.Uuid
+  
+  messages  Message[]
+  activiy_answers ActivityAnswer[]
+
+  @@index([userId])
+  @@index([activityId])
+  @@map("threads")
+}
+
+// 4. Chat Message - stores each message (user or AI)
+model Message {
+  id        String       @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  
+  role      MessageRole  // user / ai / system
+  mode      MessageMode  @default(impersonation) // impersonation / interviewer
+  data      Json?        // Module or extra structured data: { modules: [...], ... }
+  
+  threadId String       @db.Uuid
+  thread   Thread       @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  //message_annotations MessageAnnotation[]
+  asQuestionIn ActivityAnswer[] @relation("AA_QuestionMsg")
+  asAnswerIn   ActivityAnswer[] @relation("AA_AnswerMsg")
+
+  @@index([threadId, createdAt])
+  @@map("messages")
+}
+
+// 5. Memory - AI-collected user habits and characteristics
+model Memory {
+  id         String     @id @default(uuid()) @db.Uuid
+  type       MemoryType // user-added or ai-generated
+  question   String?    @db.Text
+  content    String     @db.Text
+  contentEmbedding  Unsupported("vector")?
+  source     String     // Source of the memory (e.g., "Chat analysis", "User input")
+  timestamp  DateTime   @default(now())
+  categories String[]   // Category labels (e.g., "skills", "traits", "preferences", "goals", "achievements", "work-style", "learning-style", "deleted")
+  
+  userId    String     @db.Uuid
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Many-to-many: A memory can be used by multiple profile sections
+  sections  ProfileSection[]
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  @@index([userId])
+  @@index([timestamp])
+  @@map("memories")
+}
+
+// 6. ProfileSection - User profile card sections
+model ProfileSection {
+  id          String      @id @default(uuid()) @db.Uuid
+  type        SectionType // Visual presentation type
+  title       String
+  description String      @db.Text
+  data        Json        // Dynamic data: ProgressBarItem[] | TagItem[] | etc.
+  metadata    Json?       // Optional: icon, color, order, etc.
+  order       Int         @default(0)
+  
+  userId      String      @db.Uuid
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Many-to-many: Which memories this section uses
+  memories    Memory[]
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@index([userId])
+  @@index([order])
+  @@map("profile_sections")
+}
+
+
+// 7. MessageAnnotation - AI-collected message persona tags
+enum AnnotationDomain {
+  GLOBAL
+  Work
+  Family
+  Social
+  Crisis
+  Other
+}
+
+enum AnnotationStakes {
+  GLOBAL
+  low
+  medium
+  high
+}
+
+model MessageAnnotation {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+
+  // FK -> Message
+  messageId String?  @db.Uuid
+  //message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  userId           String?        @db.Uuid
+  domain           AnnotationDomain
+  stakes           AnnotationStakes
+  tagsJson      Json?  
+  confidence   Float     @default(1.0)
+
+  @@index([messageId, createdAt])
+  @@index([domain, stakes])
+  @@index([userId])
+
+  @@map("message_annotations")
+}
+
+
+// 8. User Statistic - user persona aggregation
+model UserStatistic {
+  id            String   @id @default(uuid()) @db.Uuid
+
+  userId          String   @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  domain          AnnotationDomain
+  stakes          AnnotationStakes
+  statisticData   Json     @db.JsonB
+  isActive      Boolean   @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  persona_rubrics PersonaRubric[]
+
+  @@index([userId])
+  @@index([userId, isActive])
+  @@index([domain, stakes])
+ 
+  @@map("user_statistics")
+}
+
+// 9. Persona Rubric - AI-collected user persona rubric fro evaluation
+model PersonaRubric {
+  id              String   @id @default(uuid()) @db.Uuid
+
+  userStatisticId String   @db.Uuid
+  userStatistic   UserStatistic @relation(fields: [userStatisticId], references: [id], onDelete: Cascade)
+
+  rubricJson      Json     @db.JsonB
+  isActive        Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userStatisticId])
+  @@index([isActive])
+  @@map("persona_rubrics")
+}
+
+// 10. Activity table
+model Activity {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  category    String?
+  createdAt   DateTime @default(now())
+  questions   ActivityQuestion[]
+  answer      ActivityAnswer[]
+  @@map("activities")
+}
+
+// 11. Activity Question table
+model ActivityQuestion {
+  id         String   @id @default(uuid()) @db.Uuid
+  activityId String   @db.Uuid
+  questionText String
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  answers    ActivityAnswer[]
+  @@map("activity_questions")
+}
+
+enum ActivityQuestionType {
+  STANDARD
+  FOLLOW_UP
+}
+
+// 12. Activity Answer - user answer
+enum ExtractionStatus {
+  ANSWERED
+  INVALID
+  ASKED
+}
+
+model ActivityAnswer {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @db.Uuid
+  questionId      String?   @db.Uuid
+  activityId      String?   @db.Uuid
+  threadId        String?   @db.Uuid
+
+  questionType    ActivityQuestionType @default(STANDARD)
+
+  questionMessageId    String? @db.Uuid    // STANDARD
+  followUpQuestionText String? @db.Text    // FOLLOW_UP
+  answerMessageId      String?  @db.Uuid
+
+  ExtractionStatus ExtractionStatus
+  createdAt       DateTime @default(now())
+
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question        ActivityQuestion?  @relation(fields: [questionId], references: [id], onDelete: SetNull)
+  activity        Activity?  @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  thread          Thread?  @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  questionMessage Message? @relation("AA_QuestionMsg", fields: [questionMessageId], references: [id], onDelete: SetNull)
+  answerMessage   Message?  @relation("AA_AnswerMsg", fields: [answerMessageId], references: [id], onDelete: Cascade)
+
+  @@map("activity_answers")
+}
+
+// 13. G-Eval Run Summary - stores one full evaluation run summary for a user
+model EvaluationRun {
+  id                 String   @id @default(uuid()) @db.Uuid
+
+  userId             String   @db.Uuid
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  evalType           String?
+
+  totalQuestions     Int
+  evaluatedCount     Int
+  skippedCount       Int
+
+  avgScore           Float?
+  avgDimensionScores Json?    @db.JsonB
+
+  skippedSummary     Json?    @db.JsonB
+  itemResultsJson    Json?    @db.JsonB
+  suggestSummary     Json?    @db.JsonB
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([userId])
+  @@index([evalType])
+  @@map("evaluation_runs")
+}

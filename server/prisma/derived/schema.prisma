@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/generated/derived"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_DERIVED")
+}
+
+// Core table definitions
+
+enum MessageRole {
+  user
+  ai
+  system
+}
+
+
+// 1. Chat Message - stores each message (user or AI)
+model ConversationEvent {
+  id                     String   @id @default(uuid()) @db.Uuid
+  userId                 String   @db.Uuid
+  refMessageId           String? 
+  createdAt              DateTime @default(now())
+  
+  data                   Json?        // Module or extra structured data: { modules: [...], ... }
+  
+  // Relation to Thread
+  threadId               String       @db.Uuid
+
+  @@index([threadId, createdAt])
+  @@index([userId, createdAt])
+  @@index([refMessageId])
+  @@map("conversation_event")
+}
+
+model TrainingSample  {
+  id              String   @id @default(uuid()) @db.Uuid
+  sampleId        String   @unique           
+  userId          String   @db.Uuid
+  refMessageId    String?                    
+  sourceEventId   String?  @db.Uuid            
+  createdAt DateTime @default(now())
+  
+  data      Json?        // Module or extra structured data: { modules: [...], ... }
+  
+  // Relation to Thread
+  threadId String?       @db.Uuid
+
+  @@index([userId, createdAt])
+  @@index([threadId, createdAt])
+  @@map("training_sample")
+}
+

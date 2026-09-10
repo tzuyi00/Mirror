@@ -1,0 +1,547 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Me 2 Backend API",
+    "description": "Backend Server API endpoints for Me 2 - Node.js/Express",
+    "version": "1.0.0"
+  },
+  "tags": [
+    { "name": "Public", "description": "Publicly accessible APIs" },
+    { "name": "Private", "description": "Private APIs for internal use" }
+  ],
+  "paths": {
+    "/api/chat/generate": {
+      "post": {
+        "tags": ["Public"],
+        "summary": "POST /api/chat/generate",
+        "description": "/api/chat/generate\nCombined endpoint for sending a message and processing memory operations.\nSaves user message to both DBs, calls AI, saves AI reply to both DBs,\nand executes any memory operations in one request.",
+        "operationId": "Generate",
+        "parameters": [],
+        "requestBody": {
+          "description": "The generate request containing userId, message, and optional threadId",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateRequest",
+                "description": "The generate request containing userId, message, and optional threadId"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI reply and memory operation results",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GenerateResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GenerateResponse" }
+              }
+            }
+          },
+          "502": {
+            "description": "AI Service Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GenerateResponse" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/greeting/generate": {
+      "post": {
+        "tags": ["Public"],
+        "summary": "POST /api/greeting/generate",
+        "description": "/api/greeting/generate\nRequest a proactive greeting message for user re-engagement.\nCalled when a user's coldness index exceeds the threshold.",
+        "operationId": "GetGreeting",
+        "parameters": [],
+        "requestBody": {
+          "description": "The greeting request containing userId and threadId",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GreetingRequest",
+                "description": "The greeting request containing userId and threadId"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Greeting message text randomly selected from MOCK_GREETINGS",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GreetingResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GreetingResponse" }
+              }
+            }
+          },
+          "502": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GreetingResponse" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/thread": {
+      "post": {
+        "tags": ["Public"],
+        "summary": "POST /api/thread",
+        "description": "/api/thread\nCreate a new conversation thread or get/create the latest thread for a user\n\nIf body is empty: Creates a new generic thread\nIf body contains userId: Gets or creates the latest thread for user (optionally filtered by activityId)",
+        "operationId": "CreateOrGetUserThread",
+        "parameters": [],
+        "requestBody": {
+          "description": "Optional request body containing userId and optional activityId",
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "activityId": { "type": "string" },
+                  "userId": { "type": "string" }
+                },
+                "type": "object",
+                "description": "Optional request body containing userId and optional activityId"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thread response with threadId, createdAt, and optional activityId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ThreadCreateResponse" },
+                    {
+                      "properties": {
+                        "activityId": { "type": "string" }
+                      },
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/profile-views/{userId}": {
+      "get": {
+        "tags": ["Public", "Private"],
+        "summary": "GET /api/profile-views/{userId}",
+        "description": "/api/profile-views/{userId}\nGet the profile view for a user (composite view with sections and optionally memories)",
+        "operationId": "GetProfileView",
+        "parameters": [
+          {
+            "description": "The ID of the user",
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "in": "query",
+            "name": "include",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile view data with sections and optionally memories",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "404": {
+            "description": "Profile not found",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/memories/{memoryId}": {
+      "get": {
+        "tags": ["Public", "Private"],
+        "summary": "GET /api/memories/{memoryId}",
+        "description": "Get a specific memory by ID",
+        "operationId": "GetMemoryById",
+        "parameters": [
+          {
+            "description": "The ID of the memory to retrieve",
+            "in": "path",
+            "name": "memoryId",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memory object",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "404": {
+            "description": "Memory not found",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ThreadCreateResponse": {
+        "properties": {
+          "threadId": { "type": "string" },
+          "createdAt": { "type": "string" }
+        },
+        "required": ["threadId", "createdAt"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ThreadMessagesResponse": {
+        "properties": {
+          "threadId": { "type": "string" },
+          "messages": {
+            "items": {
+              "properties": {
+                "data": {},
+                "role": { "type": "string" },
+                "createdAt": { "type": "string" },
+                "id": { "type": "string" }
+              },
+              "required": ["data", "role", "createdAt", "id"],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["threadId", "messages"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "GenerateProfileRequest": {
+        "properties": {
+          "userId": { "type": "string" }
+        },
+        "type": "object",
+        "additionalProperties": true
+      },
+      "TriggerAutoUpdateRequest": {
+        "properties": {
+          "userId": { "type": "string" },
+          "successCount": { "type": "number", "format": "double" }
+        },
+        "required": ["userId", "successCount"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "GEvalRequest": {
+        "properties": {
+          "userId": { "type": "string" }
+        },
+        "required": ["userId"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "CreateMemoryRequest": {
+        "properties": {
+          "userId": { "type": "string" },
+          "type": { "type": "string", "enum": ["user", "ai"] },
+          "content": { "type": "string" },
+          "source": { "type": "string" },
+          "categories": { "items": { "type": "string" }, "type": "array" },
+          "sectionIds": { "items": { "type": "string" }, "type": "array" }
+        },
+        "required": ["userId", "type", "content"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "UpdateMemoryRequest": {
+        "properties": {
+          "content": { "type": "string" },
+          "source": { "type": "string" },
+          "categories": { "items": { "type": "string" }, "type": "array" }
+        },
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ErrorInfo": {
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "MetaData": {
+        "description": "Common DTO types used across multiple endpoints",
+        "properties": {
+          "userId": { "type": "string" },
+          "threadId": { "type": "string" },
+          "messageId": { "type": "string" },
+          "createdAt": { "type": "string" }
+        },
+        "required": ["userId", "createdAt"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ChatReplyResponse": {
+        "properties": {
+          "ok": { "type": "boolean" },
+          "reply": { "type": "string" },
+          "error": { "$ref": "#/components/schemas/ErrorInfo" },
+          "meta": { "$ref": "#/components/schemas/MetaData" }
+        },
+        "required": ["ok", "meta"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ChatRequest": {
+        "properties": {
+          "userId": { "type": "string" },
+          "message": { "type": "string" },
+          "threadId": { "type": "string" }
+        },
+        "required": ["userId", "message"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "MemoryOperationResult": {
+        "properties": {
+          "success": { "type": "boolean" },
+          "memoryId": { "type": "string" },
+          "error": { "type": "string" }
+        },
+        "required": ["success"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ProfileAutoUpdateInfo": {
+        "properties": {
+          "triggered": { "type": "boolean" },
+          "message": { "type": "string" },
+          "profileData": {}
+        },
+        "required": ["triggered", "message"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ProcessMemoryResponse": {
+        "properties": {
+          "ok": { "type": "boolean" },
+          "operationResults": {
+            "items": { "$ref": "#/components/schemas/MemoryOperationResult" },
+            "type": "array"
+          },
+          "profileAutoUpdate": { "$ref": "#/components/schemas/ProfileAutoUpdateInfo" },
+          "error": { "$ref": "#/components/schemas/ErrorInfo" }
+        },
+        "required": ["ok"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ProcessMemoryRequest": {
+        "properties": {
+          "threadId": { "type": "string" },
+          "userId": { "type": "string" },
+          "replyText": { "type": "string" },
+          "userMessage": { "type": "string" },
+          "source": { "type": "string" }
+        },
+        "required": ["threadId", "userId", "replyText", "userMessage"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "InterviewStartResponse": {
+        "properties": {
+          "ok": { "type": "boolean" },
+          "replyQuestion": { "type": "string" },
+          "questionMessageId": { "type": "string" },
+          "interviewEnded": { "type": "boolean" },
+          "error": { "$ref": "#/components/schemas/ErrorInfo" },
+          "meta": { "$ref": "#/components/schemas/MetaData" }
+        },
+        "required": ["ok", "meta"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "InterviewStartRequest": {
+        "properties": {
+          "threadId": { "type": "string" },
+          "userId": { "type": "string" },
+          "activityId": { "type": "string" }
+        },
+        "required": ["threadId", "userId", "activityId"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "InterviewMessageResponse": {
+        "properties": {
+          "ok": { "type": "boolean" },
+          "replyQuestion": { "type": "string" },
+          "questionMessageId": { "type": "string" },
+          "interviewEnded": { "type": "boolean" },
+          "error": { "$ref": "#/components/schemas/ErrorInfo" },
+          "meta": { "$ref": "#/components/schemas/MetaData" }
+        },
+        "required": ["ok", "meta"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "GenerateResponse": {
+        "properties": {
+          "ok": { "type": "boolean" },
+          "reply": { "type": "string" },
+          "operationResults": {
+            "items": { "$ref": "#/components/schemas/MemoryOperationResult" },
+            "type": "array"
+          },
+          "profileAutoUpdate": { "$ref": "#/components/schemas/ProfileAutoUpdateInfo" },
+          "error": { "$ref": "#/components/schemas/ErrorInfo" },
+          "meta": { "$ref": "#/components/schemas/MetaData" }
+        },
+        "required": ["ok", "meta"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "GenerateRequest": {
+        "properties": {
+          "userId": { "type": "string" },
+          "message": { "type": "string" },
+          "threadId": { "type": "string" },
+          "source": { "type": "string" }
+        },
+        "required": ["userId", "message"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "GreetingResponse": {
+        "properties": {
+          "ok": { "type": "boolean" },
+          "greeting": { "type": "string" },
+          "error": { "$ref": "#/components/schemas/ErrorInfo" },
+          "meta": { "$ref": "#/components/schemas/MetaData" }
+        },
+        "required": ["ok", "meta"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "GreetingRequest": {
+        "properties": {
+          "userId": { "type": "string" },
+          "threadId": { "type": "string" }
+        },
+        "required": ["userId", "threadId"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "AuthUser": {
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string", "nullable": true },
+          "email": { "type": "string", "nullable": true },
+          "image": { "type": "string", "nullable": true }
+        },
+        "required": ["id", "name", "email"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "SignupResponse": {
+        "properties": {
+          "message": { "type": "string" },
+          "user": { "$ref": "#/components/schemas/AuthUser" }
+        },
+        "required": ["message", "user"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "AuthErrorResponse": {
+        "properties": {
+          "error": { "type": "string" }
+        },
+        "required": ["error"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "SignupRequest": {
+        "properties": {
+          "email": { "type": "string" },
+          "password": { "type": "string" },
+          "name": { "type": "string" }
+        },
+        "required": ["email", "password"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "VerifyCredentialsResponse": {
+        "properties": {
+          "message": { "type": "string" },
+          "user": { "$ref": "#/components/schemas/AuthUser" }
+        },
+        "required": ["message", "user"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "VerifyCredentialsRequest": {
+        "properties": {
+          "email": { "type": "string" },
+          "password": { "type": "string" }
+        },
+        "required": ["email", "password"],
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [{ "url": "/" }]
+}

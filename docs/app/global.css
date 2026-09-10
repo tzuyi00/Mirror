@@ -1,0 +1,26 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+:root {
+  --docs-top-offset: 6.25rem;
+}
+
+main[data-content] {
+  scroll-margin-top: 6.5rem;
+}
+
+body:has(#nd-docs-layout) {
+  overflow: hidden;
+}
+
+body:has(#nd-docs-layout) #nd-docs-layout {
+  height: calc(100dvh - var(--docs-top-offset));
+  overflow-y: auto;
+  overflow-x: hidden;
+  --fd-docs-height: calc(100dvh - var(--docs-top-offset));
+}
+
+body:has(#nd-docs-layout) #nd-page {
+  min-height: 0;
+}

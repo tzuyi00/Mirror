@@ -1,0 +1,13 @@
+{
+  "title": "API Reference",
+  "root": true,
+  "pages": [
+    "overview",
+    "---Endpoints",
+    "Generate",
+    "GetGreeting",
+    "CreateOrGetUserThread",
+    "GetProfileView",
+    "GetMemoryById"
+  ]
+}

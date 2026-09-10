@@ -1,0 +1,49 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/server.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:db": "tsx src/db.ts",
+    "dev": "cross-env NODE_ENV=development tsx watch src/server.ts",
+    "start": "cross-env NODE_ENV=production node dist/server.js",
+    "db:dev:product": "npx dotenv -e .env.development -- prisma migrate dev --schema prisma/product/schema.prisma",
+    "db:dev:derived": "npx dotenv -e .env.development -- prisma migrate dev --schema prisma/derived/schema.prisma",
+    "db:prod:product": "npx dotenv -e .env.production -- prisma migrate deploy --schema prisma/product/schema.prisma",
+    "db:prod:derived": "npx dotenv -e .env.production -- prisma migrate deploy --schema prisma/derived/schema.prisma",
+    "db:dev": "npm run db:dev:product && npm run db:dev:derived",
+    "db:prod": "npm run db:prod:product && npm run db:prod:derived",
+    "prisma:generate:dev": "npx dotenv -e .env.development -- prisma generate --schema prisma/product/schema.prisma && npx dotenv -e .env.development -- prisma generate --schema prisma/derived/schema.prisma",
+    "prisma:generate:prod": "npx dotenv -e .env.production -- prisma generate --schema prisma/product/schema.prisma && npx dotenv -e .env.production -- prisma generate --schema prisma/derived/schema.prisma"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^6.16.2",
+    "axios": "^1.12.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "pg": "^8.16.3",
+    "swagger-ui-express": "^5.0.1",
+    "ws": "^8.18.3",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.5.2",
+    "@types/swagger-ui-express": "^4.1.8",
+    "@types/ws": "^8.18.1",
+    "cross-env": "^10.1.0",
+    "dotenv-cli": "^11.0.0",
+    "prisma": "^6.16.2",
+    "ts-node": "^10.9.2",
+    "tsoa": "^7.0.0-alpha.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2"
+  }
+}

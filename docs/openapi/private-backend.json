@@ -1,0 +1,1079 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Me 2 Backend API",
+    "description": "Backend Server API endpoints for Me 2 - Node.js/Express",
+    "version": "1.0.0"
+  },
+  "tags": [
+    { "name": "Public", "description": "Publicly accessible APIs" },
+    { "name": "Private", "description": "Private APIs for internal use" }
+  ],
+  "paths": {
+    "/api/chat/reply": {
+      "post": {
+        "tags": ["Private"],
+        "summary": "POST /api/chat/reply",
+        "description": "/api/chat/reply\nSend a message to the AI and receive only the reply text",
+        "operationId": "Reply",
+        "parameters": [],
+        "requestBody": {
+          "description": "The chat request containing userId, message, and optional threadId",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest",
+                "description": "The chat request containing userId, message, and optional threadId"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Simple response with AI reply text",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ChatReplyResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ChatReplyResponse" }
+              }
+            }
+          },
+          "502": {
+            "description": "AI Service Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ChatReplyResponse" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/chat/process-memory": {
+      "post": {
+        "tags": ["Private"],
+        "summary": "POST /api/chat/process-memory",
+        "description": "/api/chat/process-memory\nProcess memory operations for a given AI reply text",
+        "operationId": "ProcessMemory",
+        "parameters": [],
+        "requestBody": {
+          "description": "The memory processing request",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcessMemoryRequest",
+                "description": "The memory processing request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Memory operation results and profile auto-update info",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProcessMemoryResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProcessMemoryResponse" }
+              }
+            }
+          },
+          "502": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProcessMemoryResponse" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/chat/start-interview": {
+      "post": {
+        "tags": ["Private"],
+        "summary": "POST /api/chat/start-interview",
+        "description": "/api/chat/start-interview\nInitializes an interview session: returns the existing pending question if\nthe thread is already in-progress, otherwise calls AI for the first question,\nsaves it to both DBs, and returns it.",
+        "operationId": "StartInterview",
+        "parameters": [],
+        "requestBody": {
+          "description": "The start interview request",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InterviewStartRequest",
+                "description": "The start interview request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "First (or existing pending) interview question",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InterviewStartResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InterviewStartResponse" }
+              }
+            }
+          },
+          "502": {
+            "description": "AI Service Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InterviewStartResponse" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/chat/interview": {
+      "post": {
+        "tags": ["Private"],
+        "summary": "POST /api/chat/interview",
+        "description": "/api/chat/interview\nUser submits an answer; server saves it, calls AI for the next question,\nsaves the AI question to both DBs, and returns it.",
+        "operationId": "Interview",
+        "parameters": [],
+        "requestBody": {
+          "description": "The interview message request",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  { "$ref": "#/components/schemas/ChatRequest" },
+                  {
+                    "properties": {
+                      "activityId": { "type": "string" }
+                    },
+                    "required": ["activityId"],
+                    "type": "object"
+                  }
+                ],
+                "description": "The interview message request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Next interview question from AI",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InterviewMessageResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InterviewMessageResponse" }
+              }
+            }
+          },
+          "502": {
+            "description": "AI Service Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InterviewMessageResponse" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/profile-views/{userId}": {
+      "get": {
+        "tags": ["Public", "Private"],
+        "summary": "GET /api/profile-views/{userId}",
+        "description": "/api/profile-views/{userId}\nGet the profile view for a user (composite view with sections and optionally memories)",
+        "operationId": "GetProfileView",
+        "parameters": [
+          {
+            "description": "The ID of the user",
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "in": "query",
+            "name": "include",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile view data with sections and optionally memories",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "404": {
+            "description": "Profile not found",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/profile/generate": {
+      "post": {
+        "tags": ["Private"],
+        "summary": "POST /api/profile/generate",
+        "description": "/api/profile/generate\nGenerate a user profile using AI and save to database",
+        "operationId": "GenerateProfile",
+        "parameters": [],
+        "requestBody": {
+          "description": "Generation request with optional userId",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateProfileRequest",
+                "description": "Generation request with optional userId"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated profile metadata",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "500": {
+            "description": "AI service or database error",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/profile/trigger-auto-update": {
+      "post": {
+        "tags": ["Private"],
+        "summary": "POST /api/profile/trigger-auto-update",
+        "description": "/api/profile/trigger-auto-update\nTrigger profile auto-update after memory operations",
+        "operationId": "TriggerAutoUpdate",
+        "parameters": [],
+        "requestBody": {
+          "description": "Auto-update request with userId and successCount",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerAutoUpdateRequest",
+                "description": "Auto-update request with userId and successCount"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Auto-update result with triggered status",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "400": {
+            "description": "Missing required fields",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/profile/g-eval": {
+      "post": {
+        "tags": ["Private"],
+        "summary": "POST /api/profile/g-eval",
+        "description": "/api/profile/g-eval\nGet g-eval score from AI server",
+        "operationId": "GetGEval",
+        "parameters": [],
+        "requestBody": {
+          "description": "G-eval request with userId",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GEvalRequest",
+                "description": "G-eval request with userId"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "G-eval score",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/memories/{memoryId}": {
+      "get": {
+        "tags": ["Public", "Private"],
+        "summary": "GET /api/memories/{memoryId}",
+        "description": "Get a specific memory by ID",
+        "operationId": "GetMemoryById",
+        "parameters": [
+          {
+            "description": "The ID of the memory to retrieve",
+            "in": "path",
+            "name": "memoryId",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memory object",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "404": {
+            "description": "Memory not found",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          }
+        },
+        "security": []
+      },
+      "patch": {
+        "tags": ["Private"],
+        "summary": "PATCH /api/memories/{memoryId}",
+        "description": "/api/memories/{memoryId}\nUpdate an existing memory",
+        "operationId": "UpdateMemory",
+        "parameters": [
+          {
+            "description": "The ID of the memory to update",
+            "in": "path",
+            "name": "memoryId",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateMemoryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated memory object",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "404": {
+            "description": "Memory not found",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          }
+        },
+        "security": []
+      },
+      "delete": {
+        "tags": ["Private"],
+        "summary": "DELETE /api/memories/{memoryId}",
+        "description": "/api/memories/{memoryId}?mode=\"\"\nDelete a memory (soft or hard delete)",
+        "operationId": "DeleteMemory",
+        "parameters": [
+          {
+            "description": "The ID of the memory to delete",
+            "in": "path",
+            "name": "memoryId",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "description": "Delete mode: 'soft' (default, marks as deleted) or 'hard' (completely removes)",
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["soft", "hard"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deletion confirmation",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "404": {
+            "description": "Memory not found",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/memories": {
+      "post": {
+        "tags": ["Private"],
+        "summary": "POST /api/memories",
+        "description": "/api/memories\nCreate a new memory",
+        "operationId": "CreateMemory",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateMemoryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Newly created memory object",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "400": {
+            "description": "Missing required fields",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/auth/signup": {
+      "post": {
+        "tags": ["Private"],
+        "summary": "POST /api/auth/signup",
+        "description": "/api/auth/signup \nCreate a new user account",
+        "operationId": "Signup",
+        "parameters": [],
+        "requestBody": {
+          "description": "Signup request with email, password, and optional name",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignupRequest",
+                "description": "Signup request with email, password, and optional name"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created user data",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SignupResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input or email already exists",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthErrorResponse" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/auth/verify-credentials": {
+      "post": {
+        "tags": ["Private"],
+        "summary": "POST /api/auth/verify-credentials",
+        "description": "/api/auth/verify-credentials\nVerify user credentials (for NextAuth credentials provider)",
+        "operationId": "VerifyCredentials",
+        "parameters": [],
+        "requestBody": {
+          "description": "Credentials with email and password",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyCredentialsRequest",
+                "description": "Credentials with email and password"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User data if credentials are valid",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/VerifyCredentialsResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthErrorResponse" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/activities": {
+      "get": {
+        "tags": ["Private"],
+        "summary": "GET /api/activities",
+        "description": "/api/activities\nGet all activities with their questions",
+        "operationId": "GetActivities",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "All activities and their associated questions",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/activities/status/{userId}": {
+      "get": {
+        "tags": ["Private"],
+        "summary": "GET /api/activities/status/{userId}",
+        "description": "/api/activities/status/:userId\nGet the status of all activities for a specific user\nStatus includes: not_started, in_progress, completed",
+        "operationId": "GetActivityStatus",
+        "parameters": [
+          {
+            "description": "- The user ID to get activity statuses for",
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Activity statuses for the user",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/thread/{threadId}/messages": {
+      "get": {
+        "tags": ["Private"],
+        "summary": "GET /api/thread/{threadId}/messages",
+        "description": "/api/thread/{threadId}/messages\nGet all messages for a specific thread",
+        "operationId": "GetThreadMessages",
+        "parameters": [
+          {
+            "description": "The thread ID to fetch messages for",
+            "in": "path",
+            "name": "threadId",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thread messages response with threadId and messages array",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ThreadMessagesResponse" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/memories/user/{userId}": {
+      "get": {
+        "tags": ["Private"],
+        "summary": "GET /api/memories/user/{userId}",
+        "description": "Get all memories for a specific user",
+        "operationId": "GetMemoriesByUser",
+        "parameters": [
+          {
+            "description": "The user ID to fetch memories for",
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "description": "Whether to include soft-deleted memories (default: false)",
+            "in": "query",
+            "name": "includeDeleted",
+            "required": false,
+            "schema": { "type": "boolean" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of memory objects",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": { "schema": {} }
+            }
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ThreadCreateResponse": {
+        "properties": {
+          "threadId": { "type": "string" },
+          "createdAt": { "type": "string" }
+        },
+        "required": ["threadId", "createdAt"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ThreadMessagesResponse": {
+        "properties": {
+          "threadId": { "type": "string" },
+          "messages": {
+            "items": {
+              "properties": {
+                "data": {},
+                "role": { "type": "string" },
+                "createdAt": { "type": "string" },
+                "id": { "type": "string" }
+              },
+              "required": ["data", "role", "createdAt", "id"],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["threadId", "messages"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "GenerateProfileRequest": {
+        "properties": {
+          "userId": { "type": "string" }
+        },
+        "type": "object",
+        "additionalProperties": true
+      },
+      "TriggerAutoUpdateRequest": {
+        "properties": {
+          "userId": { "type": "string" },
+          "successCount": { "type": "number", "format": "double" }
+        },
+        "required": ["userId", "successCount"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "GEvalRequest": {
+        "properties": {
+          "userId": { "type": "string" }
+        },
+        "required": ["userId"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "CreateMemoryRequest": {
+        "properties": {
+          "userId": { "type": "string" },
+          "type": { "type": "string", "enum": ["user", "ai"] },
+          "content": { "type": "string" },
+          "source": { "type": "string" },
+          "categories": { "items": { "type": "string" }, "type": "array" },
+          "sectionIds": { "items": { "type": "string" }, "type": "array" }
+        },
+        "required": ["userId", "type", "content"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "UpdateMemoryRequest": {
+        "properties": {
+          "content": { "type": "string" },
+          "source": { "type": "string" },
+          "categories": { "items": { "type": "string" }, "type": "array" }
+        },
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ErrorInfo": {
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["code", "message"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "MetaData": {
+        "description": "Common DTO types used across multiple endpoints",
+        "properties": {
+          "userId": { "type": "string" },
+          "threadId": { "type": "string" },
+          "messageId": { "type": "string" },
+          "createdAt": { "type": "string" }
+        },
+        "required": ["userId", "createdAt"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ChatReplyResponse": {
+        "properties": {
+          "ok": { "type": "boolean" },
+          "reply": { "type": "string" },
+          "error": { "$ref": "#/components/schemas/ErrorInfo" },
+          "meta": { "$ref": "#/components/schemas/MetaData" }
+        },
+        "required": ["ok", "meta"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ChatRequest": {
+        "properties": {
+          "userId": { "type": "string" },
+          "message": { "type": "string" },
+          "threadId": { "type": "string" }
+        },
+        "required": ["userId", "message"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "MemoryOperationResult": {
+        "properties": {
+          "success": { "type": "boolean" },
+          "memoryId": { "type": "string" },
+          "error": { "type": "string" }
+        },
+        "required": ["success"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ProfileAutoUpdateInfo": {
+        "properties": {
+          "triggered": { "type": "boolean" },
+          "message": { "type": "string" },
+          "profileData": {}
+        },
+        "required": ["triggered", "message"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ProcessMemoryResponse": {
+        "properties": {
+          "ok": { "type": "boolean" },
+          "operationResults": {
+            "items": { "$ref": "#/components/schemas/MemoryOperationResult" },
+            "type": "array"
+          },
+          "profileAutoUpdate": { "$ref": "#/components/schemas/ProfileAutoUpdateInfo" },
+          "error": { "$ref": "#/components/schemas/ErrorInfo" }
+        },
+        "required": ["ok"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "ProcessMemoryRequest": {
+        "properties": {
+          "threadId": { "type": "string" },
+          "userId": { "type": "string" },
+          "replyText": { "type": "string" },
+          "userMessage": { "type": "string" },
+          "source": { "type": "string" }
+        },
+        "required": ["threadId", "userId", "replyText", "userMessage"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "InterviewStartResponse": {
+        "properties": {
+          "ok": { "type": "boolean" },
+          "replyQuestion": { "type": "string" },
+          "questionMessageId": { "type": "string" },
+          "interviewEnded": { "type": "boolean" },
+          "error": { "$ref": "#/components/schemas/ErrorInfo" },
+          "meta": { "$ref": "#/components/schemas/MetaData" }
+        },
+        "required": ["ok", "meta"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "InterviewStartRequest": {
+        "properties": {
+          "threadId": { "type": "string" },
+          "userId": { "type": "string" },
+          "activityId": { "type": "string" }
+        },
+        "required": ["threadId", "userId", "activityId"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "InterviewMessageResponse": {
+        "properties": {
+          "ok": { "type": "boolean" },
+          "replyQuestion": { "type": "string" },
+          "questionMessageId": { "type": "string" },
+          "interviewEnded": { "type": "boolean" },
+          "error": { "$ref": "#/components/schemas/ErrorInfo" },
+          "meta": { "$ref": "#/components/schemas/MetaData" }
+        },
+        "required": ["ok", "meta"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "GenerateResponse": {
+        "properties": {
+          "ok": { "type": "boolean" },
+          "reply": { "type": "string" },
+          "operationResults": {
+            "items": { "$ref": "#/components/schemas/MemoryOperationResult" },
+            "type": "array"
+          },
+          "profileAutoUpdate": { "$ref": "#/components/schemas/ProfileAutoUpdateInfo" },
+          "error": { "$ref": "#/components/schemas/ErrorInfo" },
+          "meta": { "$ref": "#/components/schemas/MetaData" }
+        },
+        "required": ["ok", "meta"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "GenerateRequest": {
+        "properties": {
+          "userId": { "type": "string" },
+          "message": { "type": "string" },
+          "threadId": { "type": "string" },
+          "source": { "type": "string" }
+        },
+        "required": ["userId", "message"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "GreetingResponse": {
+        "properties": {
+          "ok": { "type": "boolean" },
+          "greeting": { "type": "string" },
+          "error": { "$ref": "#/components/schemas/ErrorInfo" },
+          "meta": { "$ref": "#/components/schemas/MetaData" }
+        },
+        "required": ["ok", "meta"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "GreetingRequest": {
+        "properties": {
+          "userId": { "type": "string" },
+          "threadId": { "type": "string" }
+        },
+        "required": ["userId", "threadId"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "AuthUser": {
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string", "nullable": true },
+          "email": { "type": "string", "nullable": true },
+          "image": { "type": "string", "nullable": true }
+        },
+        "required": ["id", "name", "email"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "SignupResponse": {
+        "properties": {
+          "message": { "type": "string" },
+          "user": { "$ref": "#/components/schemas/AuthUser" }
+        },
+        "required": ["message", "user"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "AuthErrorResponse": {
+        "properties": {
+          "error": { "type": "string" }
+        },
+        "required": ["error"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "SignupRequest": {
+        "properties": {
+          "email": { "type": "string" },
+          "password": { "type": "string" },
+          "name": { "type": "string" }
+        },
+        "required": ["email", "password"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "VerifyCredentialsResponse": {
+        "properties": {
+          "message": { "type": "string" },
+          "user": { "$ref": "#/components/schemas/AuthUser" }
+        },
+        "required": ["message", "user"],
+        "type": "object",
+        "additionalProperties": true
+      },
+      "VerifyCredentialsRequest": {
+        "properties": {
+          "email": { "type": "string" },
+          "password": { "type": "string" }
+        },
+        "required": ["email", "password"],
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [{ "url": "/" }]
+}

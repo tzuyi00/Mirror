@@ -1,0 +1,648 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI Townhall API",
+    "description": "API documentation for AI Townhall services",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/generate": {
+      "post": {
+        "tags": [
+          "AI Server"
+        ],
+        "summary": "POST /generate",
+        "operationId": "generate_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feedback/operations": {
+      "post": {
+        "tags": [
+          "AI Server"
+        ],
+        "summary": "POST /feedback/operations",
+        "operationId": "feedback_operations_feedback_operations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generate/profile": {
+      "post": {
+        "tags": [
+          "AI Server"
+        ],
+        "summary": "POST /generate/profile",
+        "operationId": "generate_profile_generate_profile_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memory/sync": {
+      "post": {
+        "tags": [
+          "AI Server"
+        ],
+        "summary": "POST /memory/sync",
+        "operationId": "sync_memory_operations_memory_sync_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemorySyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memory/extract": {
+      "post": {
+        "tags": [
+          "AI Server"
+        ],
+        "summary": "POST /memory/extract",
+        "operationId": "extract_memory_memory_extract_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemoryExtractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/g-eval": {
+      "post": {
+        "tags": [
+          "AI Server"
+        ],
+        "summary": "POST /g-eval",
+        "operationId": "get_g_eval_g_eval_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GevalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GEvalResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/interview": {
+      "post": {
+        "tags": [
+          "AI Server"
+        ],
+        "summary": "POST /interview",
+        "operationId": "interview_interview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InterviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ChatRequest": {
+        "properties": {
+          "threadId": {
+            "type": "string",
+            "title": "Threadid"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "userId": {
+            "type": "string",
+            "title": "Userid"
+          },
+          "existingMemories": {
+            "anyOf": [
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Existingmemories"
+          }
+        },
+        "type": "object",
+        "required": [
+          "threadId",
+          "message",
+          "userId"
+        ],
+        "title": "ChatRequest"
+      },
+      "FeedbackRequest": {
+        "properties": {
+          "threadId": {
+            "type": "string",
+            "title": "Threadid"
+          },
+          "userId": {
+            "type": "string",
+            "title": "Userid"
+          },
+          "operationResults": {
+            "items": {
+              "$ref": "#/components/schemas/MemoryOperationResult"
+            },
+            "type": "array",
+            "title": "Operationresults"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "conversation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "threadId",
+          "userId",
+          "operationResults"
+        ],
+        "title": "FeedbackRequest"
+      },
+      "GEvalResponse": {
+        "properties": {
+          "score": {
+            "type": "number",
+            "title": "Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "score"
+        ],
+        "title": "GEvalResponse"
+      },
+      "GevalRequest": {
+        "properties": {
+          "userId": {
+            "type": "string",
+            "title": "Userid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "userId"
+        ],
+        "title": "GevalRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InterviewRequest": {
+        "properties": {
+          "threadId": {
+            "type": "string",
+            "title": "Threadid"
+          },
+          "userMessage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usermessage"
+          },
+          "userId": {
+            "type": "string",
+            "title": "Userid"
+          },
+          "activityId": {
+            "type": "string",
+            "title": "Activityid"
+          },
+          "userMessageId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usermessageid"
+          },
+          "questionMessageId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Questionmessageid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "threadId",
+          "userId",
+          "activityId"
+        ],
+        "title": "InterviewRequest"
+      },
+      "MemoryExtractRequest": {
+        "properties": {
+          "userId": {
+            "type": "string",
+            "title": "Userid"
+          },
+          "ai_question": {
+            "type": "string",
+            "title": "Ai Question"
+          },
+          "userMessage": {
+            "type": "string",
+            "title": "Usermessage"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "interview"
+          }
+        },
+        "type": "object",
+        "required": [
+          "userId",
+          "ai_question",
+          "userMessage"
+        ],
+        "title": "MemoryExtractRequest"
+      },
+      "MemoryOperationResult": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "memoryId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memoryid"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success"
+        ],
+        "title": "MemoryOperationResult"
+      },
+      "MemorySyncOperation": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "create",
+              "update",
+              "delete"
+            ],
+            "title": "Type"
+          },
+          "memoryId": {
+            "type": "string",
+            "title": "Memoryid"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "Manual Update"
+          },
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Categories",
+            "default": []
+          },
+          "deleteMode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deletemode"
+          },
+          "createdAt": {
+            "type": "string",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "memoryId",
+          "createdAt"
+        ],
+        "title": "MemorySyncOperation"
+      },
+      "MemorySyncRequest": {
+        "properties": {
+          "userId": {
+            "type": "string",
+            "title": "Userid"
+          },
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/MemorySyncOperation"
+            },
+            "type": "array",
+            "title": "Operations"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "memory_modal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "userId",
+          "operations"
+        ],
+        "title": "MemorySyncRequest"
+      },
+      "ProfileRequest": {
+        "properties": {
+          "userId": {
+            "type": "string",
+            "title": "Userid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "userId"
+        ],
+        "title": "ProfileRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

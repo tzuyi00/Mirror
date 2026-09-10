@@ -1,0 +1,74 @@
+---
+title: Internal APIs Overview
+description: Overview of AI Townhall internal APIs for team members
+---
+
+## Introduction
+
+This section documents all internal APIs used within the AI Townhall platform. These APIs are **not available for external developers** and are used for internal system operations.
+
+<Callout type="warn">
+**Internal Use Only**
+
+These APIs are part of the platform's internal architecture and should not be exposed to external developers. They handle sensitive operations like profile management, memory storage, and AI service communication.
+</Callout>
+
+## API Categories
+
+### Backend Server APIs (Node.js/Express)
+
+Located in `server/src/routes/`
+
+#### Profile Management
+- Get complete profile view
+- Generate AI-powered profiles
+- Trigger automatic profile updates
+
+#### Memory Management
+- CRUD operations for user memories
+- Sync memory operations with AI server
+- Soft/hard delete support
+
+### AI Server APIs (Python/FastAPI)
+
+Located in `ai_server/routes/`
+
+#### AI Processing
+- Generate chat responses with memory analysis
+- Generate user profiles from conversation data
+- Process memory operation feedback
+- Sync memory changes
+
+## Why These Are Private
+
+### 1. Profile APIs
+**Reason**: Automatically managed by the system
+- Profiles are generated based on conversation analysis
+- External developers should only use the Chat API
+- Direct profile manipulation could corrupt data integrity
+
+### 2. Memory APIs
+**Reason**: Sensitive personal data management
+- Memories contain personal information
+- Automatically extracted from conversations
+- Should not be directly manipulated by external systems
+
+### 3. AI Server APIs
+**Reason**: Internal microservice communication
+- Used for backend-to-AI-server communication
+- Not designed for direct external access
+- Implementation details may change
+
+## For Team Members
+
+If you're working on the Me 2 platform, refer to these internal API docs:
+
+- [Profile APIs](/private/api-reference/getProfileViews) - User profile management
+- [Memory APIs](/private/api-reference/getMemory) - Memory CRUD operations
+- [AI Server APIs](/private/api-reference/generateChatResponse) - AI processing endpoints
+
+## For External Developers
+
+If you're looking to integrate with Me 2, use our public APIs:
+
+- [Public API Overview](/docs/api-reference/overview)

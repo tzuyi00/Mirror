@@ -1,0 +1,41 @@
+version: '3.9'
+services:
+  db:
+    image: ankane/pgvector:latest
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend server - only runs when using Docker for deployment
+  # For local development, use: docker compose up -d
+  # For Docker deployment, use: docker compose --profile production up -d
+  server:
+    profiles: ["production"]
+    build:
+      context: ./server
+    command: npm run dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/postgres?schema=public
+      - PORT=3001
+    ports:
+      - '3001:3001'
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./server:/app
+    working_dir: /app
+
+volumes:
+  db_data:

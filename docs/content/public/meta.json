@@ -1,0 +1,8 @@
+{
+  "title": "Public API Documentation",
+  "pages": [
+    "getting-started",
+    "core-concepts",
+    "api-reference"
+  ]
+}
