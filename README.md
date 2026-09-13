@@ -1,256 +1,48 @@
-## Directory Structure
+# Mirror
 
-### Frontend Structure
+一個透過對話建立「數位分身」的全端網站。使用者先與**採訪模式（Interviewer mode）**的聊天機器人互動,系統會將對話內容整理成個人**檔案頁面（Profile）**; 累積足夠資料後,也能切換到**分身模式（Impersonation mode）**, 與一個訓練成該使用者說話風格的聊天機器人對話。
 
-```
-.
-├── app/                          # Main Next.js application entry
-│   ├── layout.tsx                # Root layout with WebSocket provider
-│   ├── page.tsx                  # Home page
-│   ├── (main)/                   # Main application routes group
-│   │   ├── layout.tsx            # Main layout with Sidebar, ChatBox, ProfileUpdateProvider
-│   │   └── profile/              # User profile pages
-│   │       ├── page.tsx          # Profile overview page
-│   │       └── detail/           # Profile detail pages
-│   └── globals.css               # Global styles
-│
-├── components/                   # Custom React components and UI library
-│   ├── ChatBox.tsx               # Chat interface with WebSocket integration
-│   ├── Sidebar.tsx               # Navigation sidebar component
-│   ├── theme-provider.tsx        # Theme provider for dark/light mode
-│   ├── profile/                  # Profile-specific components
-│   │   ├── MemoryModal.tsx       # Modal for viewing/editing memories
-│   │   ├── cards/                # Profile cards (Insights, Metrics, ProgressBar, Spectrum, Tags, Timeline)
-│   │   └── types/                # TypeScript type definitions for profile data
-│   └── ui/                       # Reusable UI components (shadcn/ui: accordion, alert, avatar, badge, button, etc.)
-│
-├── contexts/                     # React Context providers for global state
-│   ├── ProfileUpdateContext.tsx  # Manages profile update state
-│   └── WebSocketContext.tsx      # Provides WebSocket connection to all components
-│
-├── hooks/                        # Custom React hooks
-│   ├── useWebSocket.ts           # WebSocket connection management
-│   ├── use-mobile.ts             # Mobile device detection
-│   └── use-toast.ts              # Toast notification hook
-│
-├── lib/                          # Utility functions and shared logic
-│   ├── api.ts                    # API client functions for backend communication
-│   ├── profileUtils.ts           # Profile data processing utilities
-│   └── utils.ts                  # General utility functions (cn, etc.)
-│
-├── public/                       # Static assets
-│   ├── manifest.json             # PWA manifest
-│   ├── sw.js                     # Service worker (auto-generated)
-│   └── ...                       # Icons, images, logos, placeholders
-│
-└── styles/                       # Global CSS styles
-    └── globals.css
-```
+## 使用技術
 
-### Backend Structure
+**前端**
+- Next.js 14（App Router）+ TypeScript
+- NextAuth.js — 帳密登入、Google / GitHub OAuth、JWT session、middleware 路由保護
+- Tailwind CSS + shadcn/ui
+- React Context + 自訂 hooks,管理聊天模式、WebSocket 連線、即時檔案更新
+- 原生 WebSocket 客戶端,具備自動重連與 HTTP Fallback
+- 可安裝的 PWA
 
-```
-server/                           # Node.js backend (Express + WebSocket + Prisma)
-├── prisma/                       # Database schema and migrations
-│   ├── schema.prisma             # Prisma database schema definition
-│   └── migrations/               # Database migration files
-│
-├── src/                          # Backend source code
-│   ├── server.ts                 # Main entry point - Express, WebSocket, static file serving
-│   ├── ws.ts                     # WebSocket server implementation
-│   ├── aiService.ts              # AI service integration (OpenAI/Anthropic)
-│   │
-│   ├── routes/                   # API route handlers
-│   │   ├── chat.ts               # Chat message handling endpoints
-│   │   ├── history.ts            # Chat history retrieval endpoints
-│   │   ├── memory.ts             # Memory CRUD operations
-│   │   └── profile.ts            # Profile view and generation endpoints
-│   │
-│   ├── services/                 # Business logic services
-│   │   ├── db.ts                 # Database operations using Prisma ORM
-│   │   ├── chatService.ts        # Chat-related business logic
-│   │   ├── memoryService.ts      # Memory management logic
-│   │   ├── profileService.ts     # Profile data processing
-│   │   └── profileAutoUpdateService.ts  # Automatic profile updates
-│   │
-│   ├── stubs/                    # Mock data for development/testing
-│   │   ├── chatStubs.ts          # Mock chat responses
-│   │   ├── memoryStubs.ts        # Mock memory data
-│   │   ├── profileStubs.ts       # Mock profile data
-│   │   └── index.ts              # Stub exports
-│   │
-│   └── utils/                    # Backend utility functions
-│       └── apiResponse.ts        # API response formatting utilities
-│
-├── Dockerfile                    # Docker container configuration
-├── .env.template                 # Environment variable template
-├── package.json                  # Backend dependencies and scripts
-└── tsconfig.json                 # TypeScript configuration
-```
+**後端**
+- Node.js + Express 5 + TypeScript
+- Prisma ORM + PostgreSQL
+- WebSocket 伺服器,具備心跳偵測、可中斷的請求處理與安全清理機制
 
-### Configuration Files
+**文件**
+- 使用 [Fumadocs](https://fumadocs.dev/) 建立文件網站,API Reference 頁面由後端自身的 OpenAPI spec 自動產生
 
-```
-.
-├── package.json                  # Frontend dependencies and scripts
-├── tsconfig.json                 # Frontend TypeScript configuration
-├── next.config.mjs               # Next.js configuration (PWA, static export settings)
-├── postcss.config.mjs            # PostCSS configuration for Tailwind CSS
-├── components.json               # shadcn/ui components configuration
-├── docker-compose.yml            # Docker Compose for server + database
-├── .env.template                 # Environment variable template
-└── README.md                     # Project documentation
-```
+## 功能特色
 
-## Installation & Usage
+* 當 User 最初註冊系統後，可以先透過 Activities 與 Interviewer Mode 聊天室互動，讓 Retriver 系統獲取資料，持續了解 User ，訓練出與 User 很相似的機器人分身。
+![Activities](https://github.com/user-attachments/assets/515f9866-6922-40e9-913e-8b02dd400bab)
+![Interviewing](https://github.com/user-attachments/assets/ea51865d-437b-48f6-bf1a-823464903544)
 
-### Frontend (Next.js)
+* 當 User 資料搜集到一定程度後，將自動的生成專屬於他的 Profile 頁面，並透過各種不同效果的 UI 方式，完美呈現 User 的個人特色。
+![Profile](https://github.com/user-attachments/assets/434c2f75-aa8c-4d5b-87d7-bb3b37154d8b)
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-2. Start the development server:
-   ```bash
-   npm run dev
-   ```
-3. Visit [http://localhost:3000](http://localhost:3000) to use the app.
+* 例如有 Progress bar, Timeline , Spectrum, Tags 等等的方式。
+![Profile UI](https://github.com/user-attachments/assets/5a7a79c8-e358-4465-b18f-b5d7dd52a299)
 
-### Backend (Server)
+* 此時也可以將聊天室切換至 Impersonation Mode，與他的分身互動，體驗一個相當相似且充分了解 User 的機器人。
+![Impersonation Mode](https://github.com/user-attachments/assets/6e21a868-712d-4217-8efe-2d3986f9fce8)
 
-1. Go to the `server` folder:
-   ```bash
-   cd server
-   ```
-2. Install backend dependencies:
-   ```bash
-   npm install
-   ```
-3. Generate Prisma Clients (Development)
-   ```bash
-   npm run prisma:generate:dev
-   ```
-4. Apply Database Migrations (Development)
-   ```bash
-   npm run db:dev
-   ```
-5. Start the backend server:
-   ```bash
-   npm run dev
-   ```
-4. The server will be available at [http://localhost:3001](http://localhost:3001)
+* 此外，還有附加的功能是，在版面的右上角可以查看 All Memories，若有想要修正的 Memories，可以進行新增刪除修改，幫助這位專屬機器人更準確的了解 User ！
+![All Memories](https://github.com/user-attachments/assets/de10afc0-15b4-4f33-bf6a-ee672d94d4de)
 
-### AI Server
-
-1. Go to the `ai_server` folder:
-   ```bash
-   cd ai_server
-   ```
-2. Install Python dependencies (via Poetry):
-   ```bash
-   poetry install --no-root
-   ```
-4. Start the AI inference server:
-   ```bash
-   poetry run python main.py
-   ```
-6. The AI server will be available at: http://localhost:8000
+* 此專案本身就是一個完整的應用程式之外，也可作為 Infrastructure Layer，將訓練出的機器人分身提供給外部使用。因此使用了 Fumadocs 做官方說明文件，包含了給 外部(public) 與 內部(private) 開發者的使用說明。
+![Fumadocs](https://github.com/user-attachments/assets/6506a506-a0e5-4f55-bb27-79d61c0ca2ae)
 
 
-#### About Migration Files
+## 開發者導覽
 
-Migration files in `server/prisma/migrations` track all changes to your database schema. They should be committed to version control so all team members can keep their databases in sync.
+本地開發設定、環境變數、完整目錄結構等技術細節,請參考 **[DEVELOPMENT.md](./DEVELOPMENT.md)**。
 
-
-## Progressive Web App (PWA)
-
-This project can be run as a Progressive Web App (PWA). To test PWA features, the application must be built and run in production mode.
-
-**Important:** PWA mode is not compatible with static site generation. Before building, make sure the `output: 'export'` line in `next.config.mjs` is commented out.
-
-```bash
-# 1. Build the application for production
-npm run build
-
-# 2. Start the production server
-npm start
-```
-You can then verify the PWA status and service worker in your browser's developer tools.
-
-## Ngrok Tunnel for Development
-
-For testing and demonstration purposes, you can expose your local backend server to the internet using ngrok. The project includes a convenient script to handle this.
-
-**Important:** The ngrok deployment requires static frontend files to be generated. Before running the deployment command, make sure the `output: 'export'` line in `next.config.mjs` is **uncommented**. This will generate the `out/` directory containing static files that the backend Express server will serve.
-
-The `npm run deploy` command will:
-1. Build the frontend application (generates `out/` static files).
-2. Install backend dependencies.
-3. Concurrently start the backend server and an ngrok tunnel pointing to it.
-
-To use it, simply run:
-```bash
-npm run deploy
-```
-This will provide a public URL that you can use to access your local server from anywhere.
-
-## Updating API Documentation
-
-When you add or modify APIs in either the AI Server or Backend Server, follow these steps to regenerate the API documentation.
-
-### AI Server Updates
-
-If you've updated APIs in the AI Server (Python/FastAPI):
-
-1. Export the OpenAPI specification:
-   ```bash
-   cd ai_server
-   poetry run python export_openapi.py
-   ```
-   This generates `ai-openapi.json`.
-
-2. Copy the generated file to the docs folder:
-   ```bash
-   cp ai_server/ai-openapi.json docs/openapi/
-   ```
-
-### Backend Server Updates
-
-If you've updated APIs in the Backend Server (Node.js/Express):
-
-1. Generate the OpenAPI specification:
-   ```bash
-   cd server
-   npx tsoa spec-and-routes
-   ```
-   This generates `swagger.json`.
-
-2. Convert the OpenAPI spec into the required format using the API prompt guidelines:
-   - Transform `swagger.json` into `private-backend.json` and `public-backend.json` (Backend APIs are split into Public and Private categories)
-   - See [`api-prompt.md`](./api-prompt.md) for detailed transformation instructions
-   - Save the generated files to the `server/` directory to replace the existing files:
-     - `server/private-backend.json`
-     - `server/public-backend.json`
-
-3. Copy the generated files from `server/` to the docs folder:
-   ```bash
-   cp server/private-backend.json docs/openapi/
-   cp server/public-backend.json docs/openapi/
-   ```
-
-### Regenerate API Documentation
-
-After updating either server's APIs:
-
-1. Generate the documentation pages:
-   ```bash
-   cd docs
-   npm run generate:openapi
-   ```
-
-2. Verify the changes locally:
-   ```bash
-   npm run dev
-   ```
-
-The documentation will be generated in the `docs/content/public/api-reference` and `docs/content/private/api-reference` directories.
